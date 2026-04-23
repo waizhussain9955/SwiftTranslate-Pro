@@ -1,15 +1,16 @@
-=== SwiftTranslate Pro ===
-Contributors: waizhussain
-Author: Waiz Hussain
-Tags: translate, translator, multilingual, translation, seo
-Requires at least: 4.0
-Tested up to: 6.4
-Stable tag: 5.2.0
+=== Translate Wordpress with GTranslate ===
+Contributors: edo888
+Author: Translate AI Multilingual Solutions
+Tags: translate, translator, multilingual, translation, language
+Requires at least: 2.8.1
+Tested up to: 6.9
+Stable tag: 3.0.9
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
-Author URI: https://waizhussain.com
+Donate link: https://gtranslate.io/?xyz=998#pricing
+Author URI: https://gtranslate.io/?xyz=998
 
-SwiftTranslate Pro is a high-performance, SEO-friendly multi-language translation engine for WordPress.
+Translate WordPress with Google Translate multilanguage plugin to make your website multilingual. Complete multilingual SEO solution for WordPress.
 
 == Description ==
 

@@ -1,12 +1,13 @@
 <?php
 /*
-Plugin Name: SwiftTranslate Pro
-Plugin URI: https://github.com/Waiz-Hussain/SwiftTranslate-Pro
-Description: A high-performance, SEO-friendly multi-language translation engine for WordPress. Built with a custom sub-directory URL engine, localized flag mapping, and a refined, brand-free premium UI.
-Version: 5.2.0
-Author: Waiz Hussain
-Author URI: https://waizhussain.com
-Text Domain: swifttranslate-pro
+Plugin Name: GTranslate
+Plugin URI: https://gtranslate.io/?xyz=998
+Description: Translate your website and make it multilingual. For support visit <a href="https://wordpress.org/support/plugin/gtranslate">GTranslate Support Forum</a>.
+Version: 3.0.9
+Author: Translate AI Multilingual Solutions
+Author URI: https://gtranslate.io
+Text Domain: gtranslate
+
 */
 
 /*  Copyright 2010 - 2022 GTranslate Inc. ( website: https://gtranslate.com )

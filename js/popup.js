@@ -63,7 +63,10 @@
         var href = '#';
 
         if(url_structure == 'sub_directory') {
-            var gt_request_uri = (document.currentScript.getAttribute('data-gt-orig-url') || (location.pathname.startsWith('/'+current_lang+'/') && '/'+location.pathname.split('/').slice(2).join('/') || location.pathname)) + location.search + location.hash;
+            var gt_path_parts = location.pathname.split('/').filter(Boolean);
+            if(gt_path_parts.length && lang_array[gt_path_parts[0]]) gt_path_parts.shift();
+            var gt_clean_path = '/' + gt_path_parts.join('/');
+            var gt_request_uri = (document.currentScript.getAttribute('data-gt-orig-url') || gt_clean_path) + location.search + location.hash;
             href = (lang == default_language) && location.protocol+'//'+location.hostname+gt_request_uri || location.protocol+'//'+location.hostname+'/'+lang+gt_request_uri;
         } else if(url_structure == 'sub_domain') {
             var gt_request_uri = (document.currentScript.getAttribute('data-gt-orig-url') || location.pathname) + location.search + location.hash;
@@ -90,7 +93,28 @@
     widget_css += "a.glink:hover img{opacity:1}";
 
     var current_lang = document.querySelector('html').getAttribute('lang')||default_language;
-    if(url_structure == 'none') {
+    if(url_structure == 'sub_directory') {
+        var path_parts = location.pathname.split('/').filter(Boolean);
+        var path_lang = path_parts.length ? path_parts[0] : default_language;
+        current_lang = lang_array[path_lang] ? path_lang : default_language;
+    } else if(url_structure == 'sub_domain') {
+        var current_host = location.hostname.toLowerCase();
+        var base_host = (document.currentScript.getAttribute('data-gt-orig-domain') || location.hostname).toLowerCase();
+        var detected_lang = null;
+
+        if(typeof custom_domains == 'object') {
+            Object.keys(custom_domains).forEach(function(lang) {
+                if((custom_domains[lang] || '').toLowerCase() === current_host) detected_lang = lang;
+            });
+        }
+
+        if(!detected_lang && current_host !== base_host && current_host.endsWith('.' + base_host)) {
+            var host_prefix = current_host.slice(0, -(base_host.length + 1)).split('.')[0];
+            if(lang_array[host_prefix]) detected_lang = host_prefix;
+        }
+
+        current_lang = detected_lang || default_language;
+    } else if(url_structure == 'none') {
         var googtrans_matches = document.cookie.match('(^|;) ?googtrans=([^;]*)(;|$)');
         current_lang = googtrans_matches && googtrans_matches[2].split('/')[2] || current_lang;
     }

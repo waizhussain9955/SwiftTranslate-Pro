@@ -300,21 +300,61 @@ $trigger_script = '<style>
     });
 
     
-    function doGTranslate(lang_pair) {
-        if(lang_pair.value) lang_pair=lang_pair.value;
-        if(lang_pair=="") return;
-        var lang=lang_pair.split("|")[1];
-        var home_url = "'.$protocol.'://'.$_SERVER['HTTP_HOST'].'";
-        var path = window.location.pathname;
-        
-        // Comprehensive Language Regex
-        var lang_list = "af|sq|am|ar|hy|az|eu|be|bn|bs|bg|ca|ceb|ny|zh-CN|zh-TW|co|hr|cs|da|nl|en|eo|et|tl|fi|fr|fy|gl|ka|de|el|gu|ht|ha|haw|iw|hi|hmn|hu|is|ig|id|ga|it|ja|jw|kn|kk|km|ko|ku|ky|lo|la|lv|lt|lb|mk|mg|ms|ml|mt|mi|mr|mn|my|ne|no|ps|fa|pl|pt|pa|ro|ru|sm|gd|sr|st|sn|sd|si|sk|sl|so|es|su|sw|sv|tg|ta|te|th|tr|uk|ur|uz|vi|cy|xh|yi|yo|zu";
-        var regex = new RegExp("^/("+lang_list+")(/|$)", "i");
-        var clean_path = path.replace(regex, "/");
-        
-        var new_url = (lang == "'.$main_lang.'") ? home_url + clean_path : home_url + "/" + lang + clean_path;
-        window.location.href = new_url;
+    var gtSupported = ["af","sq","am","ar","hy","az","eu","be","bn","bs","bg","ca","ceb","ny","zh-CN","zh-TW","co","hr","cs","da","nl","en","eo","et","tl","fi","fr","fy","gl","ka","de","el","gu","ht","ha","haw","iw","hi","hmn","hu","is","ig","id","ga","it","ja","jw","kn","kk","km","ko","ku","ky","lo","la","lv","lt","lb","mk","mg","ms","ml","mt","mi","mr","mn","my","ne","no","ps","fa","pl","pt","pa","ro","ru","sm","gd","sr","st","sn","sd","si","sk","sl","so","es","su","sw","sv","tg","ta","te","th","tr","uk","ur","uz","vi","cy","xh","yi","yo","zu"];
+
+    function gtCleanPath(pathname) {
+        var parts = (pathname || "/").split("/").filter(Boolean);
+        if(parts.length && gtSupported.indexOf(parts[0]) !== -1) parts.shift();
+        return "/" + parts.join("/");
     }
+
+    function gtBuildUrl(lang) {
+        var home_url = "'.$protocol.'://'.$_SERVER['HTTP_HOST'].'";
+        var clean_path = gtCleanPath(window.location.pathname);
+        var path_with_query = clean_path + window.location.search + window.location.hash;
+        return (lang === "'.$main_lang.'") ? (home_url + path_with_query) : (home_url + "/" + lang + path_with_query);
+    }
+
+    function doGTranslate(lang_pair) {
+        if(lang_pair && lang_pair.value) lang_pair = lang_pair.value;
+        if(!lang_pair) return;
+        var parts = String(lang_pair).split("|");
+        var lang = parts.length > 1 ? parts[1] : parts[0];
+        if(!lang) return;
+        window.location.href = gtBuildUrl(lang);
+    }
+
+    // Safe fallback: sync URL after selector change without blocking native widget behavior.
+    document.addEventListener("change", function(evt) {
+        var target = evt.target;
+        if(!target || !target.value) return;
+        if(!(target.classList && target.classList.contains("gt_selector")) && !(target.className && String(target.className).indexOf("goog-te-combo") !== -1)) return;
+
+        var lang = target.value.indexOf("|") > -1 ? target.value.split("|")[1] : target.value;
+        if(!lang) return;
+        setTimeout(function() {
+            var nextUrl = gtBuildUrl(lang);
+            var next = new URL(nextUrl, window.location.origin);
+            var current = window.location.pathname + window.location.search + window.location.hash;
+            var targetUrl = next.pathname + next.search + next.hash;
+            if(current !== targetUrl) window.location.href = nextUrl;
+        }, 0);
+    }, false);
+
+    // Also handle flag/text link widgets (<a data-gt-lang="...">) reliably.
+    document.addEventListener("click", function(evt) {
+        var link = evt.target && evt.target.closest ? evt.target.closest("a[data-gt-lang]") : null;
+        if(!link) return;
+        var lang = link.getAttribute("data-gt-lang");
+        if(!lang) return;
+        setTimeout(function() {
+            var nextUrl = gtBuildUrl(lang);
+            var next = new URL(nextUrl, window.location.origin);
+            var current = window.location.pathname + window.location.search + window.location.hash;
+            var targetUrl = next.pathname + next.search + next.hash;
+            if(current !== targetUrl) window.location.href = nextUrl;
+        }, 0);
+    }, false);
 
     if ("'.$glang.'" != "'.$main_lang.'") {
         document.cookie = "googtrans=/'.$main_lang.'/'.$glang.'; path=/";
@@ -328,6 +368,15 @@ $trigger_script = '<style>
 <div id="google_translate_element2"></div>
 <script type="text/javascript" src="//translate.google.com/translate_a/element.js?cb=googleTranslateElementInit2"></script>
 <script src="https://cdn.gtranslate.net/widgets/latest/base.js" defer></script>';
+// Keep HTML lang in sync with active translated URL language.
+// Widgets rely on <html lang="..."> to mark current language and build correct target URLs.
+if(preg_match('/<html[^>]*\slang=/i', $html)) {
+    $html = preg_replace('/(<html[^>]*\slang=")[^"]*(")/i', '$1'.$glang.'$2', $html, 1);
+    $html = preg_replace("/(<html[^>]*\\slang=')[^']*(')/i", '$1'.$glang.'$2', $html, 1);
+} else {
+    $html = preg_replace('/<html([^>]*)>/i', '<html$1 lang="'.$glang.'">', $html, 1);
+}
+
 $html = str_ireplace('<body', '<body data-gt-lang="'.$glang.'"', $html);
 $html = str_ireplace('<body>', '<body>' . $trigger_script, $html);
 if(strpos($html, $trigger_script) === false) { $html = preg_replace('/<body([^>]*)>/i', '<body$1>' . $trigger_script, $html); }
